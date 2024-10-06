@@ -45,7 +45,7 @@ https://github.com/realAkshaj/CS441-HW1.git
 
 Or you can download the JAR and run it on Hadoop locally. Link - https://drive.google.com/file/d/1wC2_tjvyTHfFMy-4K1eRhPRt9fSA9-hm/view?usp=sharing
 
-
+DO NOTE THAT THE JAVA VERSION IN IntelliJ is 1.8.0
 testing_text.txt needs to be put in a dir input for this to run, 
 
 code to put - 
