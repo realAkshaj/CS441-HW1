@@ -43,7 +43,19 @@ https://github.com/realAkshaj/CS441-HW1.git
 4) Run MainApp.
 
 
-Or you can download the JAR and run it on Hadoop locally.
+Or you can download the JAR and run it on Hadoop locally. Link - https://drive.google.com/file/d/1wC2_tjvyTHfFMy-4K1eRhPRt9fSA9-hm/view?usp=sharing
+
+
+testing_text.txt needs to be put in a dir input for this to run, 
+
+code to put - 
+
+
+hdfs dfs -mkdir input
+hdfs dfs -put C:/link/to/text /input/
+
+Code to run JAR - hadoop jar C:/Users/aksha/OneDrive/Desktop/functioningjars/HW1/akuMapRed-assembly-0.1.0-SNAPSHOT.jar MainApp hdfs:///input/testing.txt hdfs:///output
+
 
 
 ```
