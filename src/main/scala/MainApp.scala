@@ -1,5 +1,5 @@
 import data.{DataCleaner, Sharder}
-import mapreduce.{CosineSimilarityJob, EmbeddingJob}
+import mapreduce.{CosineSimilarityJob, EmbeddingJob, TokenFrequencyJob}
 
 import java.nio.file.{Files, Paths}
 import java.nio.charset.StandardCharsets

@@ -27,14 +27,19 @@ class TokenFrequencyReducer extends Reducer[Text, IntWritable, Text, Text] {
   override def reduce(key: Text, values: java.lang.Iterable[IntWritable], context: Reducer[Text, IntWritable, Text, Text]#Context): Unit = {
     val sum = values.asScala.map(_.get).sum
     val parts = key.toString.split(",")
-    val word = parts(0).trim
-    val token = parts(1).trim
 
-    // Write the final output as word - token - frequency
-    context.write(new Text(s"$word - $token - $sum"), null)
+    if (parts.length == 2) {  // Ensure that the key has both word and token
+      val word = parts(0).trim
+      val token = parts(1).trim
 
-    // Write the token to the tokens-only file
-    tokensFile.write(s"$token\n")
+      // Write the final output as word - token - frequency
+      context.write(new Text(s"$word - $token - $sum"), new Text(""))
+
+      // Write the token to the tokens-only file
+      tokensFile.write(s"$token\n")
+    } else {
+      println(s"Warning: Invalid key format in reducer: $key")
+    }
   }
 
   // Close the tokens file in the cleanup phase

@@ -20,7 +20,6 @@ class TokenFrequencyMapper extends Mapper[Object, Text, Text, IntWritable] {
   // Override the setup method to initialize the tokens file
   @throws[IOException]
   override def setup(context: Mapper[Object, Text, Text, IntWritable]#Context): Unit = {
-    // Define the path to resources/output/onlytokens.txt
     val tokensFilePath: Path = Paths.get("resources/output/onlytokens.txt")
 
     // Ensure the output directory exists, if not create it
@@ -42,7 +41,7 @@ class TokenFrequencyMapper extends Mapper[Object, Text, Text, IntWritable] {
     words.foreach { word =>
       val tokens = Tokenizer.tokenize(word)
       tokens.foreach { token =>
-        // Emit word, token, and 1 for counting frequency in the Reducer
+        // Emit word-token pair as key and 1 as IntWritable value for frequency counting
         wordWithTokens.set(s"$word,$token")
         context.write(wordWithTokens, one)
 

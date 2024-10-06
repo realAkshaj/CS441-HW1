@@ -24,22 +24,20 @@ class TokenFrequencyJob {
     }
 
     // Create a new job instance
-    val job = Job.getInstance(conf, "Word-Token-Frequency")
+    val job = Job.getInstance(conf, "Token Frequency Job")
     job.setJarByClass(classOf[TokenFrequencyJob])
 
-    // Set Mapper class to emit word-token pairs
+    // Set Mapper and Reducer classes
     job.setMapperClass(classOf[TokenFrequencyMapper])
-
-    // Set Reducer class to write word-token-frequency and tokens file
     job.setReducerClass(classOf[TokenFrequencyReducer])
 
-    // Set the output key and value types
+    // Set Mapper output key-value types
+    job.setMapOutputKeyClass(classOf[Text])
+    job.setMapOutputValueClass(classOf[IntWritable])
+
+    // Set Reducer output key-value types
     job.setOutputKeyClass(classOf[Text])
     job.setOutputValueClass(classOf[Text])
-
-    // Set input and output formats
-    job.setInputFormatClass(classOf[TextInputFormat])
-    job.setOutputFormatClass(classOf[TextOutputFormat[Text, Text]])
 
     // Set input and output paths
     FileInputFormat.addInputPath(job, new Path(inputPath))
