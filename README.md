@@ -8,7 +8,7 @@
 
 This project focuses on creating a MapReduce program in Hadoop and deploying it to AWS Elastic MapReduce (EMR). The objective is to split the initial tasks of building a Large Language Model(LLM) to separate Mapper Reducers. I have implemented Mapper Reducers for Tokenization, Embedding, and CosineSimilarity Calculations. At the end of all this will be a CSV file which will contain the data/output of all the Map Reduce Tasks.
 
-Video Link: https://youtu.be/m5IzIb1mHRo
+Video Link: https://youtu.be/X4wXVrma8ko
 The video explains the deployment of Hadoop application in the AWS EMR Cluster and the project structure
 
 ### Environment
