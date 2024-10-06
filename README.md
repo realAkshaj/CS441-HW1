@@ -37,7 +37,28 @@ https://github.com/realAkshaj/CS441-HW1.git
 2) Open the project in IntelliJ
 
 
-3) Place any sample text in main/resources/input named as testing_text.txt
+
+
+3) Use Classpath File
+   
+This is the recommended solution and can be done directly within IntelliJ. Instead of passing a long classpath via the command line, IntelliJ can generate a classpath file.
+
+Steps to Use a Classpath File in IntelliJ:
+Open IntelliJ and load your project.
+
+Go to Run > Edit Configurations....
+
+In the Run/Debug Configurations window, select your MainApp run configuration.
+
+Scroll down to the Configuration tab, and find the option Shorten command line.
+
+From the dropdown, choose JAR manifest or classpath file:
+
+Classpath file is the most common and typically recommended option. It allows IntelliJ to store the classpath in a temporary file and reference it rather than passing it directly to the command line.
+JAR manifest works by embedding the classpath inside the JAR manifest (this might require additional configuration if you're building a JAR).
+Click Apply and then OK.
+
+Re-run your application.
    
 
 4) Run MainApp.
