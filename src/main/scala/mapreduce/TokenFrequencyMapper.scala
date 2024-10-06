@@ -1,72 +1,62 @@
 package mapreduce
 
-import org.apache.hadoop.io.{IntWritable, Text}
+import org.apache.hadoop.io.{IntWritable, LongWritable, Text}
 import org.apache.hadoop.mapreduce.Mapper
 import tokenizer.Tokenizer
+import org.slf4j.LoggerFactory
 
-import java.io.{BufferedWriter, File, FileWriter, IOException, OutputStreamWriter}
-import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.hadoop.conf.Configuration
-
-import java.util.UUID
-import org.apache.hadoop.io.{IntWritable, Text}
-import org.apache.hadoop.mapreduce.Mapper
-import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.hadoop.conf.Configuration
-import tokenizer.Tokenizer
-
+import java.io.{BufferedWriter, FileWriter, IOException, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path, Paths}
+import scala.collection.mutable
+
 
 class TokenFrequencyMapper extends Mapper[Object, Text, Text, IntWritable] {
 
   val wordWithTokens = new Text()
   val one = new IntWritable(1)
+  var tokensFile: BufferedWriter = _  // File for writing tokens only
 
-  // BufferedWriter for writing tokens to a local file
-  var hdfsWriter: BufferedWriter = _
-
+  // Override the setup method to initialize the tokens file
   @throws[IOException]
-  @throws[InterruptedException]
   override def setup(context: Mapper[Object, Text, Text, IntWritable]#Context): Unit = {
-    // Ensure the output directory exists
-    val conf = context.getConfiguration
-    val fs = FileSystem.get(conf)
-    val hdfsPath = new Path("hdfs:///output/tokens_output_only.txt")
-    
-    if (fs.exists(hdfsPath)) {
-      fs.delete(hdfsPath,true) // Create the directory if it doesn't exist
+    // Define the path to resources/output/onlytokens.txt
+    val tokensFilePath: Path = Paths.get("resources/output/onlytokens.txt")
+
+    // Ensure the output directory exists, if not create it
+    val parentDir = tokensFilePath.getParent
+    if (!Files.exists(parentDir)) {
+      Files.createDirectories(parentDir)
     }
 
-    val hdfsOutputStream = fs.create(hdfsPath, true)
-    hdfsWriter = new BufferedWriter(new OutputStreamWriter(hdfsOutputStream, StandardCharsets.UTF_8))
+    // Open the file for writing
+    tokensFile = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(tokensFilePath), StandardCharsets.UTF_8))
   }
-
 
   @throws[IOException]
   @throws[InterruptedException]
   override def map(key: Object, value: Text, context: Mapper[Object, Text, Text, IntWritable]#Context): Unit = {
     val words = value.toString.split("\\s+").map(_.trim).filter(_.nonEmpty)
 
+    // Tokenize each word and write the tokens both to the context and the separate file
     words.foreach { word =>
-      // Tokenize the word
       val tokens = Tokenizer.tokenize(word)
+      tokens.foreach { token =>
+        // Emit word, token, and 1 for counting frequency in the Reducer
+        wordWithTokens.set(s"$word,$token")
+        context.write(wordWithTokens, one)
 
-      // Emit word-token pair to the context for MapReduce processing
-      wordWithTokens.set(s"$word , ${tokens.mkString(",")},")
-      context.write(wordWithTokens, one)
-
-      // Write the tokens to the local file in resources/output/tokens_output_only.txt
-      synchronized {
-        hdfsWriter.write(s"${tokens.mkString(",")}\n")
+        // Also, write the token to the tokens-only file
+        tokensFile.write(s"$token\n")
       }
     }
   }
 
+  // Override cleanup method to close the tokens file
   @throws[IOException]
   override def cleanup(context: Mapper[Object, Text, Text, IntWritable]#Context): Unit = {
-    // Close the token file writer
-    if (hdfsWriter != null) {
-      hdfsWriter.close()
+    if (tokensFile != null) {
+      tokensFile.close()
     }
   }
 }

@@ -12,40 +12,36 @@ import java.io.IOException
 import scala.collection.mutable.ListBuffer
 
 
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs
 
 class EmbeddingReducer extends Reducer[Text, Text, Text, Text] {
-  private val logger = LoggerFactory.getLogger(classOf[EmbeddingReducer])
-  val encoder = new Encoder
-  // Accumulate tokens from the shard
-  private val collectedEmbeddings = ListBuffer[String]()
+  class EmbeddingReducer extends Reducer[Text, Text, Text, Text] {
+    private val logger = LoggerFactory.getLogger(classOf[EmbeddingReducer])
+    private var multipleOutputs: MultipleOutputs[Text, Text] = _
 
-  override def reduce(key: Text, values: java.lang.Iterable[Text], context: Reducer[Text, Text, Text, Text]#Context): Unit = {
-    val embeddingVectors = values.asScala.map { value =>
-      val vectorArray = value.toString.split(",").map(_.toDouble)
-      Nd4j.create(vectorArray)
-    }.toList
-
-    // Compute the average of these vectors
-    val sumVector = embeddingVectors.reduce(_ add _)
-    val averageVector = sumVector.div(embeddingVectors.size)
-
-    // Convert the average vector to a string representation
-    val tokenID = key.toString.toInt
-    val tokenWord = try {
-      // Attempt to decode the token, handle missing tokens gracefully
-      encoder.decode(Seq(tokenID))
-    } catch {
-      case e: NoSuchElementException =>
-        logger.warn(s"Token ID $tokenID not found in encoder. Using 'UNKNOWN'.")
-        "UNKNOWN" // Default to "UNKNOWN" if token is not found
+    override def setup(context: Reducer[Text, Text, Text, Text]#Context): Unit = {
+      multipleOutputs = new MultipleOutputs[Text, Text](context)
     }
 
-    val embeddingStr = averageVector.toDoubleVector.mkString(",")
+    override def reduce(key: Text, values: java.lang.Iterable[Text], context: Reducer[Text, Text, Text, Text]#Context): Unit = {
+      val token = key.toString
 
-    collectedEmbeddings += s"$tokenID,$tokenWord,$embeddingStr"
+      values.asScala.foreach { embeddingText =>
+        // Write to the regular output
+        context.write(new Text(token), embeddingText)
 
-    context.write(key, new Text(averageVector.toDoubleVector.mkString(",")))
+        // Additionally, write to a custom file called "all_embeddings"
+        multipleOutputs.write("embeddings_output", key, embeddingText)
+      }
+
+      logger.debug(s"Emitted embedding for token $token: ${values.asScala.mkString}")
+    }
+
+    override def cleanup(context: Reducer[Text, Text, Text, Text]#Context): Unit = {
+      multipleOutputs.close()
+    }
   }
+}
 //
 //  // Cleanup method in Reducer
 //  override def cleanup(context: Reducer[Text, Text, Text, Text]#Context): Unit = {
@@ -61,7 +57,6 @@ class EmbeddingReducer extends Reducer[Text, Text, Text, Text] {
 
 //    outputStream.close()
 
-}
 
 
 //class EmbeddingReducer extends Reducer[Text, Text, Text, Text] {

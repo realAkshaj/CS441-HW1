@@ -5,7 +5,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
+import org.apache.hadoop.mapreduce.lib.output.{FileOutputFormat, MultipleOutputs, TextOutputFormat}
 
 class EmbeddingJob {
   def runJob(inputPath: String, outputPath: String): Boolean = {
@@ -34,12 +34,10 @@ class EmbeddingJob {
     FileInputFormat.addInputPath(job, new Path(inputPath))
     FileOutputFormat.setOutputPath(job, new Path(outputPath))
 
+    // Add named output for embeddings
+    //MultipleOutputs.addNamedOutput(job, "embeddings-output", classOf[TextOutputFormat[Text, Text]], classOf[Text], classOf[Text])
+
     // Submit the job and wait for completion
-    if (job.waitForCompletion(true)) {
-      true
-    }
-    else {
-      false
-    }
+    job.waitForCompletion(true)
   }
 }
